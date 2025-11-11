@@ -1,0 +1,15 @@
+en la pagina principal deberá de solicitar inicio de sesión, sin haber iniciado sesión no podrá acceder a la pestaña de productos ni almacenes, solo podrá quedarse en el index.
+se deberán de contar con 3 roles, admin, productos y almacenes.
+admin podrá modificar tanto la tabla de productos y almacenes, también podrá agregar usuarios para productos y almacenes.
+productos solo podrá modificar la tabla de productos pero podrá visualizar la tabla de almacenes.
+almacenes podrá modificar la tabla de almacenes pero la tabla de productos solo la podrá visualizar.
+al intentar eliminar algún producto o almacén deberá de salir un pop confirmando si se desea eliminar.
+
+
+en las tablas se deberá de agregar 2 columnas que sean:
+ 1. fecha de ultima modificación 
+ 2. ultimo usuario en modificar
+
+en los roles, para poder guardar el usuario para inicio de sesión deberá solicitar:
+ 1. nombre
+ 2. password (cifrada)
