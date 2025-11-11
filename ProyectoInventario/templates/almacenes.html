@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Almacenes{% endblock %}
+
+{% block header %}Gestión de Almacenes{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <!-- 1. Botón para Agregar -->
+    <div class="mb-4">
+        <button onclick="abrirModalAlmacen(null)" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+            Agregar Almacén
+        </button>
+    </div>
+    
+    <!-- 2. Tabla de Almacenes -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-300">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">ID</th>
+                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Nombre</th>
+                    <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                        <span class="sr-only">Acciones</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white" id="tabla-almacenes">
+                <!-- Los datos se cargarán aquí por JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Modal para Agregar/Modificar Almacén -->
+<div id="modal-almacen" class="modal hidden fixed inset-0 z-10 w-screen h-screen bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0" onclick="cerrarModalAlmacen(event)">
+    <div class="modal-content w-full max-w-lg bg-white rounded-lg shadow-xl p-6 transform scale-95" onclick="event.stopPropagation()">
+        <h3 class="text-lg font-medium leading-6 text-gray-900" id="modal-almacen-titulo"></h3>
+        <form id="form-almacen" class="mt-4 space-y-4">
+            <input type="hidden" id="almacen-id" name="id">
+            
+            <div>
+                <label for="almacen-nombre" class="block text-sm font-medium text-gray-700">Nombre del Almacén</label>
+                <input type="text" id="almacen-nombre" name="nombre" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button type="button" onclick="cerrarModalAlmacen(null, true)" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                    Cancelar
+                </button>
+                <button type="submit" class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">
+                    Confirmar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal de Confirmación para Eliminar Almacén -->
+<div id="modal-eliminar-almacen" class="modal hidden fixed inset-0 z-10 w-screen h-screen bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0" onclick="cerrarModalEliminarAlmacen(event)">
+    <div class="modal-content w-full max-w-md bg-white rounded-lg shadow-xl p-6 transform scale-95" onclick="event.stopPropagation()">
+        <h3 class="text-lg font-medium leading-6 text-gray-900">Eliminar Almacén</h3>
+        <p class="mt-2 text-sm text-gray-600">
+            ¿Realmente se quiere eliminar la selección? Esta acción no se puede deshacer.
+        </p>
+        <input type="hidden" id="almacen-id-eliminar">
+        
+        <div class="mt-6 flex justify-end space-x-3">
+            <button type="button" onclick="cerrarModalEliminarAlmacen(null, true)" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                No
+            </button>
+            <button type="button" onclick="confirmarEliminarAlmacen()" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                Sí, eliminar
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // --- Variables Globales ---
+    const modalAlmacen = document.getElementById('modal-almacen');
+    const modalEliminarAlmacen = document.getElementById('modal-eliminar-almacen');
+    const formAlmacen = document.getElementById('form-almacen');
+    const tablaAlmacenes = document.getElementById('tabla-almacenes');
+
+    // --- Carga Inicial ---
+    document.addEventListener('DOMContentLoaded', cargarAlmacenes);
+
+    // --- Carga de Datos ---
+    async function cargarAlmacenes() {
+        try {
+            const response = await fetch('/api/almacenes');
+            const almacenes = await response.json();
+            
+            tablaAlmacenes.innerHTML = ''; 
+            if (almacenes.length === 0) {
+                tablaAlmacenes.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-500">No hay almacenes registrados.</td></tr>';
+                return;
+            }
+            
+            almacenes.forEach(almacen => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">${almacen.id}</td>
+                    <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">${almacen.nombre}</td>
+                    <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                        <button onclick='abrirModalAlmacen(${JSON.stringify(almacen)})' class="text-indigo-600 hover:text-indigo-900 mr-3">
+                            Modificar<span class="sr-only">, ${almacen.nombre}</span>
+                        </button>
+                        <button onclick="abrirModalEliminarAlmacen(${almacen.id})" class="text-red-600 hover:text-red-900">
+                            Eliminar<span class="sr-only">, ${almacen.nombre}</span>
+                        </button>
+                    </td>
+                `;
+                tablaAlmacenes.appendChild(tr);
+            });
+        } catch (error) {
+            console.error('Error al cargar almacenes:', error);
+        }
+    }
+
+    // --- Lógica del Modal (Almacén) ---
+    function abrirModalAlmacen(almacen) {
+        formAlmacen.reset();
+        const titulo = document.getElementById('modal-almacen-titulo');
+        
+        if (almacen) {
+            titulo.textContent = 'Modificar Almacén';
+            document.getElementById('almacen-id').value = almacen.id;
+            document.getElementById('almacen-nombre').value = almacen.nombre;
+        } else {
+            titulo.textContent = 'Agregar Almacén';
+            document.getElementById('almacen-id').value = '';
+        }
+        
+        modalAlmacen.classList.remove('hidden');
+        setTimeout(() => modalAlmacen.classList.remove('opacity-0'), 10);
+        setTimeout(() => modalAlmacen.querySelector('.modal-content').classList.remove('scale-95'), 10);
+    }
+
+    function cerrarModalAlmacen(event, force = false) {
+        if (force || event.target === modalAlmacen) {
+            modalAlmacen.classList.add('opacity-0');
+            modalAlmacen.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => modalAlmacen.classList.add('hidden'), 250);
+        }
+    }
+
+    // --- Lógica del Modal (Eliminar) ---
+    function abrirModalEliminarAlmacen(id) {
+        document.getElementById('almacen-id-eliminar').value = id;
+        modalEliminarAlmacen.classList.remove('hidden');
+        setTimeout(() => modalEliminarAlmacen.classList.remove('opacity-0'), 10);
+        setTimeout(() => modalEliminarAlmacen.querySelector('.modal-content').classList.remove('scale-95'), 10);
+    }
+    
+    function cerrarModalEliminarAlmacen(event, force = false) {
+        if (force || event.target === modalEliminarAlmacen) {
+            modalEliminarAlmacen.classList.add('opacity-0');
+            modalEliminarAlmacen.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => modalEliminarAlmacen.classList.add('hidden'), 250);
+        }
+    }
+
+    // --- Acciones CRUD (Fetch API) ---
+    
+    formAlmacen.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const id = document.getElementById('almacen-id').value;
+        const nombre = document.getElementById('almacen-nombre').value;
+        
+        const url = id ? `/api/almacenes/${id}` : '/api/almacenes';
+        const method = id ? 'PUT' : 'POST';
+        
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre: nombre })
+            });
+            
+            if (response.ok) {
+                cerrarModalAlmacen(null, true);
+                cargarAlmacenes();
+            } else {
+                console.error('Error al guardar el almacén');
+            }
+        } catch (error) {
+            console.error('Error de red:', error);
+        }
+    });
+    
+    async function confirmarEliminarAlmacen() {
+        const id = document.getElementById('almacen-id-eliminar').value;
+        try {
+            const response = await fetch(`/api/almacenes/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                cerrarModalEliminarAlmacen(null, true);
+                cargarAlmacenes();
+            } else {
+                const errorData = await response.json();
+                alert('Error al eliminar el almacén: ' + (errorData.error || 'Error desconocido'));
+                cerrarModalEliminarAlmacen(null, true);
+            }
+        } catch (error) {
+            console.error('Error de red:', error);
+        }
+    }
+</script>
+{% endblock %}

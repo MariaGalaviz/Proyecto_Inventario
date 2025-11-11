@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- El título ahora viene de las plantillas hijas -->
+    <title>{% block title %}{% endblock %} - App Inventario</title>
+    <!-- Incluimos Tailwind CSS para los estilos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos para los modales */
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content {
+            transition: transform 0.25s ease;
+        }
+    </style>
+</head>
+<body class="h-full font-sans">
+    <div class="min-h-full">
+        <!-- Barra de Navegación -->
+        <nav class="bg-gray-800">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex h-16 items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <span class="text-white font-bold text-lg">App Inventario</span>
+                        </div>
+                        <div class="hidden md:block">
+                            <div class="ml-10 flex items-baseline space-x-4">
+                                <!-- Los enlaces de navegación -->
+                                <!-- 'active_page' es una variable que pasamos desde Flask -->
+                                <a href="/" class="{% if active_page == 'inicio' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium" aria-current="page">Inicio</a>
+                                <a href="/productos" class="{% if active_page == 'productos' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium">Productos</a>
+                                <a href="/almacenes" class="{% if active_page == 'almacenes' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium">Almacenes</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Cabecera de la página -->
+        <header class="bg-white shadow">
+            <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <h1 class="text-3xl font-bold tracking-tight text-gray-900">
+                    <!-- El header ahora viene de las plantillas hijas -->
+                    {% block header %}{% endblock %}
+                </h1>
+            </div>
+        </header>
+
+        <!-- Contenido principal -->
+        <main>
+            <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+                <!-- El contenido ahora viene de las plantillas hijas -->
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Modales (definidos en las plantillas hijas) -->
+    {% block modals %}{% endblock %}
+
+    <!-- Scripts (definidos en las plantillas hijas) -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
