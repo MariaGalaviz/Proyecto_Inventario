@@ -3,23 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- El título ahora viene de las plantillas hijas -->
     <title>{% block title %}{% endblock %} - App Inventario</title>
-    <!-- Incluimos Tailwind CSS para los estilos -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilos para los modales */
-        .modal {
-            transition: opacity 0.25s ease;
-        }
-        .modal-content {
-            transition: transform 0.25s ease;
-        }
+        .modal { transition: opacity 0.25s ease; }
+        .modal-content { transition: transform 0.25s ease; }
     </style>
 </head>
 <body class="h-full font-sans">
     <div class="min-h-full">
-        <!-- Barra de Navegación -->
         <nav class="bg-gray-800">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 items-center justify-between">
@@ -29,41 +21,61 @@
                         </div>
                         <div class="hidden md:block">
                             <div class="ml-10 flex items-baseline space-x-4">
-                                <!-- Los enlaces de navegación -->
-                                <!-- 'active_page' es una variable que pasamos desde Flask -->
-                                <a href="/" class="{% if active_page == 'inicio' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium" aria-current="page">Inicio</a>
-                                <a href="/productos" class="{% if active_page == 'productos' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium">Productos</a>
-                                <a href="/almacenes" class="{% if active_page == 'almacenes' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium">Almacenes</a>
+                                <a href="{{ url_for('inicio') }}" class="{% if active_page == 'inicio' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium">Inicio</a>
+                                <a href="{{ url_for('productos') }}" class="{% if active_page == 'productos' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium">Productos</a>
+                                <a href="{{ url_for('almacenes') }}" class="{% if active_page == 'almacenes' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium">Almacenes</a>
+                                
+                                {% if current_user.rol == 'admin' %}
+                                <a href="{{ url_for('admin_panel') }}" class="{% if active_page == 'admin' %}bg-gray-900 text-white{% else %}text-gray-300 hover:bg-gray-700 hover:text-white{% endif %} rounded-md px-3 py-2 text-sm font-medium">Admin</a>
+                                {% endif %}
                             </div>
+                        </div>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="ml-4 flex items-center md:ml-6">
+                            <span class="text-gray-400 text-sm mr-3">
+                                Hola, <strong class="text-white">{{ current_user.nombre }}</strong> 
+                                (<span class="italic text-gray-300">{{ current_user.rol }}</span>)
+                            </span>
+                            <a href="{{ url_for('logout') }}" class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500">
+                                Salir
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </nav>
 
-        <!-- Cabecera de la página -->
         <header class="bg-white shadow">
             <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative mb-4" role="alert">
+                            <span class="block sm:inline">{{ message }}</span>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
                 <h1 class="text-3xl font-bold tracking-tight text-gray-900">
-                    <!-- El header ahora viene de las plantillas hijas -->
                     {% block header %}{% endblock %}
                 </h1>
             </div>
         </header>
 
-        <!-- Contenido principal -->
         <main>
             <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
-                <!-- El contenido ahora viene de las plantillas hijas -->
                 {% block content %}{% endblock %}
             </div>
         </main>
     </div>
 
-    <!-- Modales (definidos en las plantillas hijas) -->
     {% block modals %}{% endblock %}
 
-    <!-- Scripts (definidos en las plantillas hijas) -->
+    <script>
+        const USER_ROLE = '{{ current_user.rol | safe }}';
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
